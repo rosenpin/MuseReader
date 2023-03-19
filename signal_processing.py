@@ -1,34 +1,43 @@
-from unused_scripts.helper_method import *
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import lfilter, firwin
+
+"""
+reading / writing functions
+"""
 
 
-def get_mean_adjusted_threshold(buffer, t):
-    mu = np.mean(buffer)
-    return mu * t
+def load_array_from_csv(file_path):
+    return np.genfromtxt(file_path, delimiter=',')
 
 
-def peak_detection(x, threshold=0.05, width=15):
-    x_filt = apply_filter(x - np.mean(x), w_tetha)
-    # if np.max(np.abs(x)) != 0:
-    #     x = x / np.max(np.abs(x))
-    # x_norm = (x - np.mean(x)) / np.std(x)
-    y = np.diff(x_filt ** 2)
-    # y = y / np.max(y)
-    is_high = y > threshold
-    print(np.max(y))
-    return np.any(is_high)
+"""
+Plotting functions
+"""
 
 
-def rms(x):
-    return np.sqrt(np.mean(x ** 2))
+def plot_line(x):
+    plt.figure()
+    plt.plot(x)
+    plt.show()
 
 
-def peak_detection_sigma(x):
-    y = np.abs(x)
-    mu = np.mean(y)
-    sigma = np.std(y)
-    threshold = mu + 2.5 * sigma
-    return np.any(y > threshold)
+def plot_spectrogram(x, fs):
+    plt.figure()
+    plt.specgram(x, Fs=fs)
 
 
-def base_level(x):
-    return np.mean(x)
+"""
+signal processing methods
+"""
+
+
+def apply_fir_filter(x, w):
+    return lfilter(w, [1], x)
+
+
+def design_band_filter(fs, fmin, fmax, numtaps=31, is_band_pass=False):
+    cutoff= [fmin, fmax]
+    w = firwin(numtaps=numtaps, cutoff=cutoff, pass_zero=is_band_pass, fs=fs)
+    return w
+

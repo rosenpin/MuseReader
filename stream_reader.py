@@ -129,11 +129,12 @@ def yield_sample(buff_size=100,
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+    from tqdm import tqdm
     x = yield_sample(data_source='EEG')
     a = []
-    for i in range(100):
+    for i in tqdm(range(100)):
         buf = next(x)
-        print(buf)
+        #print(buf)
         a.append(buf[0])
         sleep(0.03)
 
