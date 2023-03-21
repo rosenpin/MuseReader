@@ -1,7 +1,16 @@
+# External Packages Imports
 import matplotlib.pyplot as plt
 
 
+"""
+Below are some definitions for helper methods. Used for code readability
+"""
+
+
 class StreamTypes:
+    """
+    All available Stream Types
+    """
     EEG = "EEG"
     ACC = "Accelerometer"
     GYRO = "Gyroscope"

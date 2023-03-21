@@ -1,24 +1,32 @@
+# External Packages Import
 import numpy as np  # Module that simplifies computations on matrices
 from pylsl import StreamInlet, resolve_byprop  # Module to receive EEG data
-
+# This Package Imports
 from src.muselslSource import utils
 from src.helper_methods import is_iterable, get_possible_indexes   # More utility functions
 
-# BUFFER_LENGTH = 5
-#
-# # Length of the epochs used to compute the FFT (in seconds)
-# EPOCH_LENGTH = 1
-#
-# # Amount of overlap between two consecutive epochs (in seconds)
-# OVERLAP_LENGTH = 0.8
 
 
 class MuseStreamReader:
+    """
+    This class is responsible for all functionality regarding the muselsl stream
+    """
 
     class StreamError(Exception):
+        """
+        A custom Exception to be sent when the stream fails
+        """
         pass
 
     def __init__(self, buffer_length_seconds=5, shift_length=0.2, index_channel=None, stream_type="EEG"):
+        """
+        Constructor for the Stream Reader
+        :param buffer_length_seconds: length of the buffer in seconds
+        :param shift_length: the shift between two consecutive buffers in seconds
+        :param index_channel: choose the channel or channels you wish to read from. Depends on stream type.
+        :param stream_type: one of possible stream types between "EEG", "Accelerometer", "Gyroscope" and "PPG"
+        """
+
         self.fs = None
         self.inlet = None
         self.buffer_length = buffer_length_seconds
@@ -30,7 +38,7 @@ class MuseStreamReader:
         # check if index_channel is iterable
         if not is_iterable(index_channel):
             index_channel = [0]
-        # 0 = left ear, 1 = left forehead, 2 = right forehead, 3 = right ear
+        # update channels with chosen indexes
         self.channels = []
         possible_indexes = get_possible_indexes(stream_type)
         for i in possible_indexes:
@@ -56,7 +64,7 @@ class MuseStreamReader:
         # Get the sampling frequency
         # This is an important value that represents how many EEG data points are
         # collected in a second. This influences our frequency band calculation.
-        # for the Muse 2016, this should always be 256
+        # for the Muse 2016 EEG, this should always be 256
         self.fs = int(info.nominal_srate())
         self.inlet = inlet
 

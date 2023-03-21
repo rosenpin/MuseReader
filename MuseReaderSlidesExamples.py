@@ -1,13 +1,18 @@
+# Python prebuilt packages
 import sys
 import time
 
-import numpy as np  # Module that simplifies computations on matrices
-import matplotlib.pyplot as plt  # Module used for plotting
-from src.muselslSource import utils
+# External Packages imports
+import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
+import pyautogui
+
+# This Package imports
+from src.muselslSource import utils
 from src.MuseStreamReader import MuseStreamReader
 from src.GestureHandler import GestureHandler
-import pyautogui
+from src.OnlineTimeSeriesPlotter import OnlineTimeSeriesPlotter
 
 """
 these are minor change to the code included in the muselsl example
@@ -28,6 +33,9 @@ these are minor change to the code included in the muselsl example
 
 """
 
+
+# Handy little enum to make code more readable
+
 class Band:
     Delta = 0
     Theta = 1
@@ -35,43 +43,44 @@ class Band:
     Beta = 3
 
 
-class OnlineTimeSeriesPlotter:
+def reading_eeg_raw_buffer_data_example():
+    # Length of the EEG data buffer (in seconds)
+    # This buffer will hold last n seconds of data and be used for calculations
+    BUFFER_LENGTH = 5
 
-    def __init__(self, line_size, y_min, y_max, threshold=None):
-        self.buffer = np.zeros(line_size)
-        self.line = None
-        self.ax = None
-        self.fig = None
-        self.y_min = y_min
-        self.y_max = y_max
-        self.threshold = threshold
+    # Amount to 'shift' the start of each next consecutive epoch
+    SHIFT_LENGTH = 0.2
 
-    def init_plot(self):
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111)
-        plt.ylim([self.y_min, self.y_max])
-        plt.ion()
-        self.ax.axhline(y=self.threshold, color='r', linestyle='-')
-        self.line, = self.ax.plot(self.buffer, 'r-')  # Returns a tuple of line objects, thus the comma
-        plt.show()
+    # Index of the channel(s) (electrodes) to be used
+    # 0 = left ear, 1 = left forehead, 2 = right forehead, 3 = right ear
+    INDEX_CHANNEL = [0, 1, 2, 3]
 
-    def render(self, x):
-        """
-        adds new sample x to buffer
-        :param x:
-        :return:
-        """
-        self.buffer = np.concatenate([self.buffer[1:], [x]])  # update the buffer
+    # initialize a stream reader object. It is in charge of the device readings
+    muse_stream_reader = MuseStreamReader(BUFFER_LENGTH, SHIFT_LENGTH, INDEX_CHANNEL, stream_type="EEG")
+    # start stream
+    fs = muse_stream_reader.start_stream()
+    print(fs)
 
-        self.line.set_ydata(self.buffer)
-        self.fig.canvas.draw()
-        self.fig.canvas.flush_events()
-        plt.pause(0.001)
+    try:
+        # The following loop acquires data, computes band powers, and calculates neurofeedback metrics based on those band powers
+        while True:
+            """ 3.1 ACQUIRE DATA """
+
+            # Obtain EEG data from the LSL stream
+            eeg_buffer = muse_stream_reader.get_stream_data()
+            df = pd.DataFrame(eeg_buffer)
+            df.columns = [["left ear", "left forehead", "right forehead", "right ear"][i] for i in INDEX_CHANNEL]
+
+            print(df.head(6))
+    except KeyboardInterrupt:
+        print('Closing!')
 
 
 def band_split_example():
-    """ 1. CONNECT TO EEG STREAM """
+    """ 1. CONNECT TO EEG STREAM and show readings"""
 
+    # Length of the EEG data buffer (in seconds)
+    # This buffer will hold last n seconds of data and be used for calculations
     BUFFER_LENGTH = 5
 
     # Length of the epochs used to compute the FFT (in seconds)
@@ -87,7 +96,12 @@ def band_split_example():
     # 0 = left ear, 1 = left forehead, 2 = right forehead, 3 = right ear
     INDEX_CHANNEL = [1]
 
+    # this is a gesture threshold for relaxation. feel free to tune as needed
+    RELAXATION_TRESHOLD = 2.5
+
+    # initialize a stream reader object. It is in charge of the device readings
     muse_stream_reader = MuseStreamReader(BUFFER_LENGTH, SHIFT_LENGTH, INDEX_CHANNEL, stream_type="EEG")
+    # starts the stream
     fs = muse_stream_reader.start_stream()
 
     """ 2. INITIALIZE BUFFERS """
@@ -106,11 +120,9 @@ def band_split_example():
     # script with <Ctrl-C>
     print('Press Ctrl-C in the console to break the while loop.')
 
-    viewer = OnlineTimeSeriesPlotter(100, 0, 4, threshold=2.5)
+    # this is an online time series plotter. set to hold previous results and compare them to a threshold
+    viewer = OnlineTimeSeriesPlotter(100, 0, 4, threshold=RELAXATION_TRESHOLD)
     viewer.init_plot()
-
-    def on_eyes_closed():
-        print("eyes closed", file=sys.stderr)
 
     try:
         # The following loop acquires data, computes band powers, and calculates neurofeedback metrics based on those band powers
@@ -145,7 +157,13 @@ def band_split_example():
                            smooth_band_powers[Band.Delta]
             print('Alpha Relaxation: ', alpha_metric)
 
+            # sends last alpha result to the viewer
             viewer.render(alpha_metric)
+
+            """
+            Beyond are commented implementations of Beta and Alpha/Theta protocols, Given By muselsl
+            """
+
             # Beta Protocol:
             # Beta waves have been used as a measure of mental activity and concentration
             # This beta over theta ratio is commonly used as neurofeedback for ADHD
@@ -164,37 +182,6 @@ def band_split_example():
         print('Closing!')
 
 
-def reading_eeg_buffer_data_example():
-    # Length of the EEG data buffer (in seconds)
-    # This buffer will hold last n seconds of data and be used for calculations
-    BUFFER_LENGTH = 5
-
-    # Amount to 'shift' the start of each next consecutive epoch
-    SHIFT_LENGTH = 0.2
-
-    # Index of the channel(s) (electrodes) to be used
-    # 0 = left ear, 1 = left forehead, 2 = right forehead, 3 = right ear
-    INDEX_CHANNEL = [1]
-
-    muse_stream_reader = MuseStreamReader(BUFFER_LENGTH, SHIFT_LENGTH, INDEX_CHANNEL, stream_type="EEG")
-    fs = muse_stream_reader.start_stream()
-    print(fs)
-
-    try:
-        # The following loop acquires data, computes band powers, and calculates neurofeedback metrics based on those band powers
-        while True:
-            """ 3.1 ACQUIRE DATA """
-
-            # Obtain EEG data from the LSL stream
-            eeg_buffer = muse_stream_reader.get_stream_data()
-            df = pd.DataFrame(eeg_buffer)
-            df.columns = [["left ear", "left forehead", "right forehead", "right ear"][i] for i in INDEX_CHANNEL]
-
-            print(df.head(6))
-    except KeyboardInterrupt:
-        print('Closing!')
-
-
 def acc_detection_example():
     from src.signal_processing import firwin
 
@@ -203,25 +190,27 @@ def acc_detection_example():
     # Amount to 'shift' the start of each next consecutive epoch
     SHIFT_LENGTH = 0.05
 
-    # Index of the channel(s) (electrodes) to be used
+    # Index of the channel(s) (axis) to be used
     # 0 = X, 1 = Y, 2 = Z
     INDEX_CHANNEL = [0]
 
+    THRESHOLD_SHAKE = 0.25
+
+    # initialize a stream reader object. It is in charge of the device readings
     muse_stream_reader = MuseStreamReader(BUFFER_LENGTH, SHIFT_LENGTH, INDEX_CHANNEL, stream_type="Accelerometer")
     fs = muse_stream_reader.start_stream()
-    print(fs)
-    w_twirl = firwin(31, 0.6, pass_zero=True, fs=fs)
-    threshold_shake = 0.25
 
-    # def call_on_shake():
-    #     print("shake detected")
+    print(f"sampling rate: {fs}")
 
+# this method is called on successful gesture recognition
     def call_on_shake():
-        print("shake detected")
+        print("shake detected", file=sys.stderr)
         with pyautogui.hold("space"):
             time.sleep(0.01)
 
-    shake_detected_handler = GestureHandler(threshold_shake, BUFFER_LENGTH, SHIFT_LENGTH)
+    # here is a demonstration of a GestureHandler object. It is responsible for comparing results against a threshold,
+    # handling whatever follows the recognition, and ensures some delay between successful recognitions
+    shake_detected_handler = GestureHandler(THRESHOLD_SHAKE, BUFFER_LENGTH, SHIFT_LENGTH)
 
     try:
         # The following loop acquires data, computes band powers, and calculates neurofeedback metrics based on those band powers
@@ -234,14 +223,17 @@ def acc_detection_example():
             # preprocessing - shift to [-1, 1] range
             x = eeg_buffer / max(abs(eeg_buffer))
 
-            # feature number
+            # feature number - a head shake is quite sharp so a derivative is a perfect fit
             x_diff = np.diff(x, axis=0)
-            if x_diff.size > 0:  # handle edge case where x is of length 0
+            # handle edge case where x is of length 0
+            if x_diff.size > 0:
                 x_diff_peak = max(abs(x_diff))
             else:
                 x_diff_peak = 0
-            print(x_diff_peak, file=sys.stderr)
 
+            print(x_diff_peak)
+
+            # here we send the model result and the output function to the gesture handler
             shake_detected_handler.evaluate_gesture(x_diff_peak, call_on_shake)
 
     except KeyboardInterrupt:
@@ -249,4 +241,5 @@ def acc_detection_example():
 
 
 if __name__ == '__main__':
+    # run this example
     acc_detection_example()

@@ -1,7 +1,8 @@
+# External Packages Import
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import lfilter, firwin
-from src.muselslSource.utils import update_buffer
+
 """
 reading / writing functions
 """
@@ -40,4 +41,3 @@ def design_band_filter(fs, fmin, fmax, numtaps=31, is_band_pass=False):
     cutoff = [fmin, fmax]
     w = firwin(numtaps=numtaps, cutoff=cutoff, pass_zero=is_band_pass, fs=fs)
     return w
-
