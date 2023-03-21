@@ -3,51 +3,36 @@ import time
 
 import numpy as np  # Module that simplifies computations on matrices
 import matplotlib.pyplot as plt  # Module used for plotting
-from pylsl import StreamInlet, resolve_byprop  # Module to receive EEG data
-import utils  # Our own utility functions
+from src.muselslSource import utils
 import pandas as pd
-from MuseStreamReader import MuseStreamReader
-
+from src.MuseStreamReader import MuseStreamReader
+from src.GestureHandler import GestureHandler
 import pyautogui
-import keyboard
 
+"""
+these are minor change to the code included in the muselsl example
+@misc{muse-lsl,
+  author       = {Alexandre Barachant and
+                  Dano Morrison and
+                  Hubert Banville and
+                  Jason Kowaleski and
+                  Uri Shaked and
+                  Sylvain Chevallier and
+                  Juan Jesús Torre Tresols},
+  title        = {muse-lsl},
+  month        = may,
+  year         = 2019,
+  doi          = {10.5281/zenodo.3228861},
+  url          = {https://doi.org/10.5281/zenodo.3228861}
+}
+
+"""
 
 class Band:
     Delta = 0
     Theta = 1
     Alpha = 2
     Beta = 3
-
-
-class GestureHandler:
-    """
-    This class checks a model value against a threshold, calls a given function upon detection, and ensures that
-    an entire buffer passes before next gesture detection
-    """
-
-    def __init__(self, threshold, buffer_length, shift_length):
-        self.threshold = threshold
-        self.buffer_length = buffer_length
-        self.shift_length = shift_length
-        self.event_flag = False
-        self.event_count = 0
-
-    def evaluate_gesture(self, model_value, call_on_detect):
-        if model_value > self.threshold:
-            if not self.event_flag:
-                self.event_flag = True
-
-                call_on_detect()
-
-            else:
-                if self.event_count * self.shift_length > self.buffer_length:
-                    self.event_flag = False
-                    self.event_count = 0
-                else:
-                    self.event_count += 1
-        else:
-            self.event_flag = False
-            self.event_count = 0
 
 
 class OnlineTimeSeriesPlotter:
@@ -211,7 +196,7 @@ def reading_eeg_buffer_data_example():
 
 
 def acc_detection_example():
-    from signal_processing import firwin, apply_fir_filter
+    from src.signal_processing import firwin
 
     BUFFER_LENGTH = 1.5
 
@@ -264,4 +249,4 @@ def acc_detection_example():
 
 
 if __name__ == '__main__':
-    acc_detection_example  ()
+    acc_detection_example()

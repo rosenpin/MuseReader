@@ -3,3 +3,6 @@ Images
 *.xlsx
 .idea/
 __pycache__/
+venv
+Old
+data

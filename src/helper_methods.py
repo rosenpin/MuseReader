@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 
+
 class StreamTypes:
     EEG = "EEG"
     ACC = "Accelerometer"

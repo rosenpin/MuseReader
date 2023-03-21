@@ -1,9 +1,7 @@
-import numpy as np
-
-from signal_processing import *
+from src.signal_processing import *
 
 fs = 52
-data = load_array_from_csv("Accelerometer_recording_2023-03-19-21.08.00.csv")
+data = load_array_from_csv("data/Accelerometer_recording_2023-03-19-21.08.00.csv")
 
 data = data[1:, 1:]
 

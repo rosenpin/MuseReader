@@ -1,8 +1,8 @@
 import numpy as np  # Module that simplifies computations on matrices
 from pylsl import StreamInlet, resolve_byprop  # Module to receive EEG data
 
-import utils  # Utility functions from Muselsl
-from helper_methods import is_iterable, get_possible_indexes   # More utility functions
+from src.muselslSource import utils
+from src.helper_methods import is_iterable, get_possible_indexes   # More utility functions
 
 # BUFFER_LENGTH = 5
 #
