@@ -50,21 +50,23 @@ class GestureHandler:
             self.event_count = 0
 
 
-class OnlineTimeSeries:
+class OnlineTimeSeriesPlotter:
 
-    def __init__(self, line_size, y_min, y_max):
+    def __init__(self, line_size, y_min, y_max, threshold=None):
         self.buffer = np.zeros(line_size)
         self.line = None
         self.ax = None
         self.fig = None
         self.y_min = y_min
         self.y_max = y_max
+        self.threshold = threshold
 
     def init_plot(self):
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111)
         plt.ylim([self.y_min, self.y_max])
         plt.ion()
+        self.ax.axhline(y=self.threshold, color='r', linestyle='-')
         self.line, = self.ax.plot(self.buffer, 'r-')  # Returns a tuple of line objects, thus the comma
         plt.show()
 
@@ -119,7 +121,7 @@ def band_split_example():
     # script with <Ctrl-C>
     print('Press Ctrl-C in the console to break the while loop.')
 
-    viewer = OnlineTimeSeries(200, 0, 4)
+    viewer = OnlineTimeSeriesPlotter(100, 0, 4, threshold=2.5)
     viewer.init_plot()
 
     def on_eyes_closed():
@@ -226,13 +228,13 @@ def acc_detection_example():
     w_twirl = firwin(31, 0.6, pass_zero=True, fs=fs)
     threshold_shake = 0.25
 
-    def call_on_shake():
-        print("shake detected")
-
     # def call_on_shake():
     #     print("shake detected")
-    #     with pyautogui.hold("space"):
-    #         time.sleep(0.01)
+
+    def call_on_shake():
+        print("shake detected")
+        with pyautogui.hold("space"):
+            time.sleep(0.01)
 
     shake_detected_handler = GestureHandler(threshold_shake, BUFFER_LENGTH, SHIFT_LENGTH)
 
@@ -262,4 +264,4 @@ def acc_detection_example():
 
 
 if __name__ == '__main__':
-    band_split_example()
+    acc_detection_example  ()
