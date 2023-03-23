@@ -18,6 +18,7 @@ and muselsl:
 
 https://github.com/alexandrebarachant/muse-lsl.git
 
+### credit
  ```
  @misc{muse-lsl,
   author       = {Alexandre Barachant and
