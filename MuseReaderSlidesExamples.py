@@ -242,4 +242,4 @@ def acc_detection_example():
 
 if __name__ == '__main__':
     # run this example
-    acc_detection_example()
+    reading_eeg_raw_buffer_data_example()

@@ -35,7 +35,7 @@ class OnlineTimeSeriesPlotter:
         plt.ylim([self.y_min, self.y_max])
         plt.ion()
         self.ax.axhline(y=self.threshold, color='r', linestyle='-')
-        self.line, = self.ax.plot(self.buffer, 'r-')  # Returns a tuple of line objects, thus the comma
+        self.line, = self.ax.plot(self.buffer, '-')  # Returns a tuple of line objects, thus the comma
         plt.show()
 
     def render(self, x):
